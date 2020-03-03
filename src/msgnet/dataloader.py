@@ -11,7 +11,7 @@ import numpy as np
 import ase
 import ase.db
 from ase.neighborlist import NeighborList
-from vorosym import voro_tessellate, graphdistance
+#from vorosym import voro_tessellate, graphdistance
 import msgnet
 
 
