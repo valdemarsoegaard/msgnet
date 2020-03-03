@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib import layers
 
-datadir = "/tmp/"
+datadir = "C:/Users/valde/OneDrive/Dokumenter/GitHub/msgnet/datasets"
 
 
 def sh_softplus(x):
