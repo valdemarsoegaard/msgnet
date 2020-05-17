@@ -6,6 +6,8 @@ import timeit
 import ase
 import numpy as np
 import tensorflow as tf
+import sklearn.model_selection
+
 
 import msgnet
 
@@ -67,7 +69,9 @@ def get_arguments(arg_list=None):
     parser.add_argument("--readout", type=str, default="set2set")
     parser.add_argument("--target", type=str, default=None)
     parser.add_argument("--learning_rate", type=float, default=1e-3)
-
+    parser.add_argument("--ensemble", type=int, default=0, 
+                        help="m out of M models used for model ensembling. if 0, no ensemble splitting is done. M=5 is standard for using ensemble modelling.")
+    #maybe add parameter for split size, default=0.7
     return parser.parse_args(arg_list)
 
 
@@ -87,6 +91,7 @@ def gen_prefix(namespace):
         "fold",
         "target",
         "learning_rate",
+        "ensemble" #add this to make sure it make new log_path. Look for _e0/1/2/3... in the end of log_path name
     ]:
         if isinstance(argdict[key], list):
             val = "-".join([str(x) for x in argdict[key]])
@@ -119,21 +124,37 @@ def main(args):
         target_name = args.target
     else:
         target_name = DataLoader.default_target
-
+    
     graph_obj_list = DataLoader(
         cutoff_type=args.cutoff[0], cutoff_radius=args.cutoff[1]
     ).load()
+    logging.info("Length of 'graph_obj_list'= {0} type= {1}".format(len(graph_obj_list),type(graph_obj_list)))#new info check
+    ###############added stuff
+    if args.ensemble > 0:
+        ensemble_size=0.7
+        random_state=args.ensemble
+        #indices=len(graph_obj_list)
+        graph_obj_list,NU= sklearn.model_selection.train_test_split(graph_obj_list, train_size=ensemble_size, random_state=random_state)
+        #Shorten dataset to fit the ensemble model size.
+        logging.info("Dataset split to ensemble dataset m = %f of size 0.7 " % (args.ensemble))
+        logging.info("Length of 'graph_obj_list'= {} after ensemble splitting".format(len(graph_obj_list)))#new info check
+    ################added stuff
+    
     data_handler = msgnet.datahandler.EdgeSelectDataHandler(
         graph_obj_list, [target_name], args.edge_idx
     )
-
+    
+    #DataLoader.default_target
+    #train, validation = sklearn.model_selection.train_test_split(
+    #            train, test_size=validation_size, random_state=random_state
+    #        )
+    
     if not args.load_model:
         with open(logs_path + "commandline_args.txt", "w") as f:
             f.write("\n".join(sys.argv[1:]))
 
     train_obj, test_obj, val_obj = data_handler.train_test_split(
         test_fold=args.fold, **DataLoader.default_datasplit_args
-    )
 
     model = get_model(args, data_handler)
 
