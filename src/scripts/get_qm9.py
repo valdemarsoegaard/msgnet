@@ -228,7 +228,8 @@ def xyz_to_ase(filename, output_name):
             atoms = ase.Atoms(numbers=desc.z, positions=desc.coord, pbc=False)
             asedb.write(atoms, data=properties_dict)
 
-
+#Direc="C:/Users/valde/OneDrive - Danmarks Tekniske Universitet/GitHub/msgnet/datasets"
+#msgnet.defauls.datadir does not work...
 if __name__ == "__main__":
     url = "https://ndownloader.figshare.com/files/3195389"
     filename = os.path.join(msgnet.defaults.datadir, "dsgdb9nsd.xyz.tar.bz2")
