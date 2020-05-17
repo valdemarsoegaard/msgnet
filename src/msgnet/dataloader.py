@@ -30,7 +30,7 @@ class DataLoader:
     @property
     def final_dest(self):
         cutname = "%s-%.2f" % (self.cutoff_type, self.cutoff_radius)
-        return "/%s/%s_%s.pkz" % (
+        return "%s/%s_%s.pkz" % (
             msgnet.defaults.datadir,
             self.__class__.__name__,
             cutname,
@@ -68,7 +68,7 @@ class DataLoader:
         obj_list = []
         with tarfile.open(self.final_dest, "r") as tar:
             for tarinfo in tar.getmembers():
-                buf = tar.extractfile(tarinfo)
+                buf = tar.extractfile(tarinfo).read() #added .read()
                 decomp = zlib.decompress(buf)
                 obj_list.append(pickle.loads(decomp))
         return obj_list
@@ -144,7 +144,6 @@ class DataLoader:
         logging.info("Data loaded")
         return obj_list
 
-
 class Oqmd12DataLoader(DataLoader):
     default_target = "delta_e"
     default_datasplit_args = {
@@ -212,8 +211,23 @@ class Qm9DataLoader(DataLoader):
         self.cutoff_type = cutoff_type
         self.cutoff_radius = cutoff_radius
         self.self_interaction = False
+####ADDED STUFF########################
+class MoldataDataLoader(DataLoader):
+    default_target = "homo"
+    default_datasplit_args = {
+        "split_type": "count",
+        "validation_size": 100000,
+        "test_size": 2322849 - 2200000,
+    }
 
-
+    def __init__(self, cutoff_type="const", cutoff_radius=100.0):
+        super().__init__()
+        self.download_url = None
+        self.download_dest = "%s/moldata.db" % (msgnet.defaults.datadir)
+        self.cutoff_type = cutoff_type
+        self.cutoff_radius = cutoff_radius
+        self.self_interaction = False
+####ADDED STUFF######################
 class FeatureGraph:
     def __init__(
         self,
